@@ -1,0 +1,11 @@
+services:
+  remi-creator-tool:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: remi-creator-tool
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
