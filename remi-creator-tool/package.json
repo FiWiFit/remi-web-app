@@ -2,16 +2,16 @@
   "name": "remi-creator-tool",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "typecheck": "next typegen && tsc --noEmit",
-    "format": "prettier --write .",
-"format:check": "prettier --check .",
-    "check": "npm run lint && npm run typecheck && npm run build"
-  },
+"scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "eslint .",
+  "typecheck": "next typegen && tsc --noEmit",
+  "format": "prettier --write .",
+  "format:check": "prettier --check .",
+  "check": "npm run lint && npm run typecheck && npm run format:check && npm run build"
+},
   "dependencies": {
     "next": "16.2.10",
     "react": "19.2.4",
