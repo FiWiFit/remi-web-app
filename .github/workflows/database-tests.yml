@@ -12,6 +12,28 @@ jobs:
   database-tests:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: remi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d remi_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: remi_test
+
     defaults:
       run:
         working-directory: remi-creator-tool
@@ -20,13 +42,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
 
-      - name: Start Supabase
-        run: supabase start
+      - name: Apply PostgreSQL baseline
+        run: psql -X --set=ON_ERROR_STOP=1 --single-transaction --file=db/migrations/001_initial_schema.sql
 
-      - name: Run database tests
-        run: supabase test db
+      - name: Verify expected public tables
+        run: |
+          psql -X --set=ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          DECLARE
+            table_count integer;
+          BEGIN
+            SELECT count(*) INTO table_count
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+              AND table_type = 'BASE TABLE'
+              AND table_name IN (
+                'profiles', 'user_preferences', 'recipes',
+                'recipe_ingredients', 'recipe_steps', 'recipe_media',
+                'recipe_imports', 'recipe_nutrition', 'tags',
+                'recipe_tags', 'saves', 'collections',
+                'collection_recipes', 'user_dietary_preferences',
+                'allergens', 'user_allergens', 'user_recipe_notes'
+              );
+            IF table_count <> 17 THEN
+              RAISE EXCEPTION 'Expected 17 REMI public tables, found %', table_count;
+            END IF;
+            RAISE NOTICE 'All 17 expected REMI public tables exist';
+          END;
+          $$;
+          SQL
