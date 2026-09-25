@@ -160,9 +160,9 @@ These choices remain subject to the project's documented engineering review proc
 - Next.js;
 - React;
 - TypeScript;
-- PostgreSQL through Supabase;
-- Supabase Authentication;
-- Supabase Storage;
+- PostgreSQL through server-only `pg` (Browser → Next.js server → pg → PostgreSQL);
+- authentication and account authorization deferred to Authentication + Accounts;
+- media storage integration to be determined;
 - PostHog analytics;
 - Cypress end-to-end testing;
 - Vercel deployment.
@@ -181,14 +181,13 @@ remi-web-app/
 │   ├── reading-reviews/
 │   ├── sprint-logs/
 │   └── product/
-├── src/                  # Created/configured with the Next.js application
-├── supabase/
-│   └── migrations/
-├── cypress/
-└── public/
+└── remi-creator-tool/
+    ├── src/
+    ├── db/migrations/    # PostgreSQL source of truth
+    └── public/
 ```
 
-The exact application directories may change when the Next.js project is initialised.
+The application and its database migrations live in `remi-creator-tool/`.
 
 ## Documentation
 
@@ -202,27 +201,27 @@ The repository documentation will include:
 
 ## Local development
 
-To be completed after the Next.js and Supabase projects are initialised.
+See [application setup and retained security requirements](remi-creator-tool/README.md). The current runtime is Browser → Next.js server → pg → PostgreSQL.
 
 ### Prerequisites
 
-TBC.
+Node.js 24, PostgreSQL, and the `psql` client.
 
 ### Installation
 
-TBC.
+Run `npm ci` from `remi-creator-tool/`.
 
 ### Environment variables
 
-TBC. Secret values must not be committed to Git.
+Set server-only `DATABASE_URL` in `remi-creator-tool/.env.local`. Secret values must not be committed to Git.
 
 ### Run locally
 
-TBC.
+Apply `remi-creator-tool/db/migrations/001_initial_schema.sql` once to an empty development database as described in the application README, then run `npm run dev` from `remi-creator-tool/`.
 
 ### Run tests
 
-TBC.
+Run `npm run check` from `remi-creator-tool/`. Database CI uses PostgreSQL 17, applies the baseline, and verifies the 17 expected public tables. End-user authorization tests are deferred to Authentication + Accounts.
 
 ## Deployment
 
@@ -232,7 +231,7 @@ TBC after the first deployment workflow is implemented.
 
 1. Establish the Git repository and documentation structure.
 2. Complete initial user journeys and data-model research.
-3. Initialise the Next.js application and Supabase project.
+3. Initialise the Next.js application and direct PostgreSQL database.
 4. Deploy an application skeleton.
 5. Implement authentication.
 6. Implement creator profiles and structured recipes.
